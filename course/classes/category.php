@@ -115,6 +115,9 @@ class core_course_category implements renderable, cacheable_object, IteratorAggr
     /** @var bool */
     protected $fromcache = false;
 
+    /** @var context */
+    public $ctx = false;
+
     /**
      * Magic setter method, we do not want anybody to modify properties from the outside
      *
@@ -215,7 +218,10 @@ class core_course_category implements renderable, cacheable_object, IteratorAggr
      * @param bool $fromcache whether it is being restored from cache
      */
     protected function __construct(stdClass $record, $fromcache = false) {
-        context_helper::preload_from_record($record);
+	$ctxid  = isset($record->ctxid) && isset($record->ctxlevel) ? $record->ctxid: false;
+	context_helper::preload_from_record($record);
+	if($ctxid)
+	   $this->ctx = context::instance_by_id($ctxid);
         foreach ($record as $key => $val) {
             if (array_key_exists($key, self::$coursecatfields)) {
                 $this->$key = $val;
@@ -384,18 +390,15 @@ class core_course_category implements renderable, cacheable_object, IteratorAggr
 
         $types['categories'] = [];
         $categories = [];
-        $toset = [];
         foreach ($catrs as $record) {
             $category = new self($record);
-            $toset[$category->id] = $category;
 
             if (!empty($options['returnhidden']) || $category->is_uservisible()) {
                 $categories[$record->id] = $category;
             }
+            $coursecatrecordcache->set($category->id,$category);
         }
         $catrs->close();
-
-        $coursecatrecordcache->set_many($toset);
 
         return $categories;
 

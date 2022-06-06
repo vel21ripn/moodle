@@ -1234,7 +1234,7 @@ class calendar_information {
                 $categories = [];
                 foreach (\core_course_category::get_all() as $category) {
                     if (isset($coursecategories[$category->id]) ||
-                            has_capability('moodle/category:manage', $category->get_context(), $USER, false)) {
+                            has_capability('moodle/category:manage', $category->ctx, $USER, false)) {
                         // If the user has access to a course in this category or can manage the category,
                         // then they can see all parent categories too.
                         $categories[$category->id] = true;
